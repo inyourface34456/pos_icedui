@@ -1,10 +1,7 @@
 #![windows_subsystem = "windows"]
-mod state;
-mod msg;
-mod tools;
+mod display;
 
-use state::Display;
-use tools::*;
+use display::Display;
 
 fn main() -> iced::Result {
     Display::default().start()

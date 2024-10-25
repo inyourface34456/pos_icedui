@@ -1,7 +1,7 @@
 use iced::widget::{self, button, column, row, text, Column};
 use iced::{Element, Length, Theme};
-use crate::button_style;
-use crate::msg::Message;
+use super::tools::button_style;
+use super::msg::Message;
 
 pub struct Display {
     to_set: String,
