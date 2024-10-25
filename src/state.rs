@@ -1,64 +1,72 @@
 use iced::widget::{self, button, column, row, text, Column};
-use iced::Theme;
+use iced::{Element, Length, Theme};
+use crate::button_style;
 use crate::msg::Message;
 
-pub struct State {
-    value: i64,
+pub struct Display {
     to_set: String,
     error: String,
+    items: Vec<String>
 }
 
-impl Default for State {
+impl Default for Display {
     fn default() -> Self {
         Self {
-            value: 0,
             to_set: String::from("0"),
             error: String::new(),
+            items: Vec::new(),
         }
     }
 }
 
-impl State {
+impl Display {
     fn update(&mut self, message: Message) {
         match message {
-            Message::Increment => self.value += 1,
-            Message::Decrment => self.value -= 1,
             Message::ToSet(num) => self.to_set = num,
-            Message::SetSig => {
-                match self.to_set.parse::<i64>() {
-                    Ok(num) => {
-                        self.value = num;
-                        self.error = String::new();
-                    },
-                    Err(e) => self.error = e.to_string(),
-                }
-            }
+            Message::AddToList => self.items.push(self.to_set.clone()),
+            Message::Remove(id) => {self.items.remove(id);},
         }
     }
     
-    fn view(&self) -> Column<Message> {
-        column![
-            text(self.value),
-            row![
-                button("+").on_press(Message::Increment),
-                button("-").on_press(Message::Decrment),
+    fn view(&self) -> Element<'_, Message> {
+        row![
+            column![
+                self.view_list()
+            ],
+            column![
+                row![
+                    text("What do you want to add to the list?"),
+                    widget::text_input("0", self.to_set.as_ref())
+                        .on_input(|num| Message::ToSet(num))
+                        .on_submit(Message::AddToList),
+                ]
+                 .spacing(5),
+                 text(&self.error),
             ]
-                .spacing(10),
+        ].into()
+    }
 
-            row![
-                text("What do you want to change it to?"),
-                widget::text_input("0", self.to_set.as_ref())
-                    .on_input(|num| Message::ToSet(num))
-                    .on_submit(Message::SetSig),
-            ]
-             .spacing(5),
-             text(&self.error),
+    fn view_list(&self) -> Element<'_, Message> {
+        let mut item_list = Column::new()
+            .spacing(5)
+            .width(Length::Fill);
 
-        ]
+        for (id, item) in self.items.iter().enumerate() {
+            item_list = item_list.push(
+                button(
+                    text(item)
+                )
+                .on_press(Message::Remove(id))
+                .width(300)
+                .style(button_style)
+            );
+        }
+
+        item_list.into()
     }
 
     pub fn start(&self) -> Result<(), iced::Error> {
-        iced::application("A counter", State::update, State::view)
+        iced::application("POS software: ALPHA", Display::update, Display::view)
             .theme(|_| Theme::Dark)
             .centered()
             .antialiasing(false)
